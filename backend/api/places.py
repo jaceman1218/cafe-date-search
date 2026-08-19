@@ -1,6 +1,8 @@
 """カフェ検索・店舗詳細のAPIエンドポイント。"""
 from __future__ import annotations
 
+import os
+
 from fastapi import APIRouter, HTTPException, Response
 
 from backend.schemas.place import PlaceDetail, PlaceSummary, SearchResponse
@@ -10,6 +12,10 @@ from backend.services.place_cache import get_cached_photo, save_photo_cache
 from backend.services.scoring import rank_places
 
 router = APIRouter(prefix="/api/places", tags=["places"])
+
+# 「この店舗から選べばOK」に留めるため、検索結果はスコア上位に絞って返す。
+# 件数は環境変数 MAX_SEARCH_RESULTS で変更可能（デフォルト10件）。
+MAX_SEARCH_RESULTS = int(os.environ.get("MAX_SEARCH_RESULTS", "10"))
 
 
 def _to_summary(place: dict, area: str, score: float) -> PlaceSummary:
@@ -52,7 +58,7 @@ async def search_places(request: SearchRequest) -> SearchResponse:
             all_results.append(_to_summary(place, area, score))
 
     all_results.sort(key=lambda p: p.score, reverse=True)
-    return SearchResponse(results=all_results, searched_areas=request.areas)
+    return SearchResponse(results=all_results[:MAX_SEARCH_RESULTS], searched_areas=request.areas)
 
 
 @router.get("/{place_id}", response_model=PlaceDetail)

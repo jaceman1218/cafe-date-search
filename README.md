@@ -76,6 +76,14 @@ python -m http.server 5500
 pytest
 ```
 
+## 検索結果の件数
+
+「初心者が迷わないこと」を優先し、`POST /api/places/search` はスコア上位
+**10件**（環境変数 `MAX_SEARCH_RESULTS` で変更可）に絞って返す。
+
+Google Places Text Search APIは1エリアあたり最大20件返す仕様（ページング未実装のため
+1ページ目のみ）。複数エリアを指定した場合は合算してから上位N件に絞る。
+
 ## 検索結果のキャッシュ
 
 Google Places APIの呼び出し回数を減らすため、検索結果（エリア単位）と店舗詳細を
