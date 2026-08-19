@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>カフェデート検索</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="app-header">
+  <h1>カフェデート検索</h1>
+</header>
+
+<main id="app">
+
+  <!-- 画面1：検索画面 -->
+  <section id="screen-search" class="screen">
+    <form id="search-form">
+      <div class="field">
+        <label>駅・エリア</label>
+        <div id="area-inputs">
+          <input type="text" class="area-input" placeholder="例：梅田" required>
+        </div>
+        <button type="button" id="add-area-btn" class="link-btn">＋ 探す場所を追加</button>
+      </div>
+
+      <div class="field">
+        <label>デートする時間帯</label>
+        <div class="segmented" id="time-slot-group">
+          <button type="button" class="segmented-btn" data-value="morning">朝<br><small>6:00〜11:00</small></button>
+          <button type="button" class="segmented-btn is-selected" data-value="day">昼<br><small>11:00〜17:00</small></button>
+          <button type="button" class="segmented-btn" data-value="night">夜<br><small>17:00〜23:00</small></button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>予算（お一人様）</label>
+        <div class="radio-list" id="budget-group">
+          <label><input type="radio" name="budget" value="under_1000"> 〜1,000円</label>
+          <label><input type="radio" name="budget" value="under_2000"> 〜2,000円</label>
+          <label><input type="radio" name="budget" value="under_3000" checked> 〜3,000円</label>
+          <label><input type="radio" name="budget" value="under_5000"> 〜5,000円</label>
+          <label><input type="radio" name="budget" value="over_5000"> 5,000円〜</label>
+        </div>
+      </div>
+
+      <button type="submit" class="primary-btn">カフェを探す</button>
+    </form>
+  </section>
+
+  <!-- 画面2：検索結果 -->
+  <section id="screen-results" class="screen is-hidden">
+    <button type="button" class="back-btn" data-target="screen-search">← 検索条件を変更</button>
+    <h2>初デートにおすすめのカフェ</h2>
+    <p id="results-condition" class="condition-summary"></p>
+
+    <div class="sort-row">
+      <label for="sort-select">並び替え</label>
+      <select id="sort-select">
+        <option value="score">おすすめ順</option>
+        <option value="rating">評価が高い順</option>
+        <option value="reviews">口コミが多い順</option>
+        <option value="distance">駅から近い順</option>
+      </select>
+    </div>
+
+    <div id="results-list" class="results-list"></div>
+  </section>
+
+  <!-- 画面3：店舗詳細 -->
+  <section id="screen-detail" class="screen is-hidden">
+    <button type="button" class="back-btn" data-target="screen-results">← 検索結果に戻る</button>
+    <div id="detail-content"></div>
+  </section>
+
+</main>
+
+<script src="js/app.js"></script>
+</body>
+</html>

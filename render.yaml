@@ -1,0 +1,20 @@
+# Render Blueprint（Infrastructure as Code）設定。
+# Renderのダッシュボードで「New +」→「Blueprint」からこのリポジトリを選ぶと、
+# この内容に沿ってサービスが自動作成される。
+#
+# GOOGLE_MAPS_API_KEY は sync: false のため、Blueprint適用時に
+# Renderダッシュボード側で値の入力を求められる（.envと同様、リポジトリには含めない）。
+services:
+  - type: web
+    name: cafe-date-search
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.9
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: CACHE_TTL_HOURS
+        value: "24"
