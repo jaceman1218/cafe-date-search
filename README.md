@@ -104,8 +104,38 @@ SQLite（プロジェクトルート直下 `cafe_search_cache.db`、`.gitignore`
 - `backend/services/scoring.py` … ランキングロジック。AI分析結果をスコアに組み込む際もここを変更する。
 - `backend/models/` / `backend/database/` … 現状は検索結果・店舗詳細のキャッシュのみ。口コミ分析結果の永続化などが必要になったらここに追加する。
 
-## デプロイ（Render想定）
+## デプロイ（Render）
 
-- GitHubにpush → Renderでバックエンドをデプロイ。
-- Renderの Environment Variables に `GOOGLE_MAPS_API_KEY` を設定（将来は `OPENAI_API_KEY` も追加）。
-- フロントエンドは静的ファイルとして配信し、`API_BASE` を本番のバックエンドURLに向ける。
+FastAPIが `frontend/` の静的ファイルも配信するため、**バックエンド1サービスだけ**で
+アプリ全体（画面＋API）が動く構成になっている。フロントエンドを別サービスに分ける必要はない。
+
+### 手順
+
+1. GitHubにこのリポジトリをpush
+2. Renderのダッシュボードで「New +」→「Blueprint」→ このリポジトリを選択
+   （リポジトリ直下の `render.yaml` の内容が自動で読み込まれる）
+3. デプロイ時に `GOOGLE_MAPS_API_KEY` の入力を求められるので、Google Cloud Consoleで
+   発行したキーを入力（`.env`と同様、リポジトリには含めない）
+4. デプロイ完了後に払い出されるURL（例: `https://cafe-date-search.onrender.com`）に
+   アクセスすればアプリが使える
+
+`render.yaml` を使わず手動でWeb Serviceを作る場合は、以下を設定する。
+
+| 項目 | 値 |
+| --- | --- |
+| Build Command | `pip install -r requirements.txt` |
+| Start Command | `uvicorn backend.main:app --host 0.0.0.0 --port $PORT` |
+| Environment Variables | `GOOGLE_MAPS_API_KEY`（必須）、`CACHE_TTL_HOURS`（任意、デフォルト24） |
+
+### 注意：SQLiteキャッシュの永続性
+
+Renderの無料プランはファイルシステムが**再デプロイ・再起動のたびにリセット**される
+（永続ディスクは有料プランのアドオン）。そのため `cafe_search_cache.db` によるキャッシュも
+デプロイのたびに消える。動作には支障ないが、キャッシュの効果は再起動までの間に限られる。
+永続化したい場合は、Renderの有料永続ディスク、または外部DB（`DATABASE_URL`で切り替え可能）
+の利用を検討する。
+
+### 将来AIを導入したら
+
+`OPENAI_API_KEY` をRenderのEnvironment Variablesに追加する（`render.yaml`にも
+`sync: false`で項目を追加しておくと、Blueprint適用時に入力を求められるようになる）。
