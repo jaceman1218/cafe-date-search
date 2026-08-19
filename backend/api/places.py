@@ -1,21 +1,38 @@
 """カフェ検索・店舗詳細のAPIエンドポイント。"""
 from __future__ import annotations
 
-import os
+import re
 
 from fastapi import APIRouter, HTTPException, Response
 
 from backend.schemas.place import PlaceDetail, PlaceSummary, SearchResponse
-from backend.schemas.search import SearchRequest
+from backend.schemas.search import SearchRequest, SortKey
 from backend.services.google_maps import GoogleMapsClient, GoogleMapsClientError
 from backend.services.place_cache import get_cached_photo, save_photo_cache
 from backend.services.scoring import rank_places
 
 router = APIRouter(prefix="/api/places", tags=["places"])
 
-# 「この店舗から選べばOK」に留めるため、検索結果はスコア上位に絞って返す。
-# 件数は環境変数 MAX_SEARCH_RESULTS で変更可能（デフォルト10件）。
-MAX_SEARCH_RESULTS = int(os.environ.get("MAX_SEARCH_RESULTS", "10"))
+
+def _parse_walk_minutes(distance_text: str | None) -> float:
+    """「駅から徒歩○分」等から分数を取り出す。「すぐ」は0分、読み取れなければ最後尾扱い。"""
+    if not distance_text:
+        return float("inf")
+    if "すぐ" in distance_text:
+        return 0.0
+    match = re.search(r"(\d+)\s*分", distance_text)
+    return float(match.group(1)) if match else float("inf")
+
+
+def _sort_key(place: PlaceSummary, sort_by: SortKey):
+    """request.sort_by に応じた並び替えキーを返す（昇順ソート前提）。"""
+    if sort_by == SortKey.RATING:
+        return -(place.rating if place.rating is not None else -1)
+    if sort_by == SortKey.REVIEWS:
+        return -(place.user_ratings_total if place.user_ratings_total is not None else -1)
+    if sort_by == SortKey.DISTANCE:
+        return _parse_walk_minutes(place.distance_text)
+    return -place.score  # SortKey.SCORE（おすすめ順）
 
 
 def _to_summary(place: dict, area: str, score: float) -> PlaceSummary:
@@ -57,8 +74,8 @@ async def search_places(request: SearchRequest) -> SearchResponse:
             seen_place_ids.add(place_id)
             all_results.append(_to_summary(place, area, score))
 
-    all_results.sort(key=lambda p: p.score, reverse=True)
-    return SearchResponse(results=all_results[:MAX_SEARCH_RESULTS], searched_areas=request.areas)
+    all_results.sort(key=lambda p: _sort_key(p, request.sort_by))
+    return SearchResponse(results=all_results[: request.limit], searched_areas=request.areas)
 
 
 @router.get("/{place_id}", response_model=PlaceDetail)

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List
+from typing import List, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -46,12 +46,23 @@ BUDGET_PRICE_LEVEL_MAP = {
 }
 
 
+class SortKey(str, Enum):
+    """検索結果の並び順。結果画面の並び替えプルダウンと同じ選択肢。"""
+
+    SCORE = "score"  # おすすめ順（営業時間/予算一致・評価・口コミ数の総合スコア）
+    RATING = "rating"  # 評価が高い順
+    REVIEWS = "reviews"  # 口コミが多い順
+    DISTANCE = "distance"  # 駅から近い順
+
+
 class SearchRequest(BaseModel):
     """検索画面から送信される検索条件。"""
 
     areas: List[str] = Field(..., min_length=1, max_length=MAX_AREAS, description="駅・エリア名のリスト（最大5件）")
     time_slot: TimeSlot
     budget: Budget
+    sort_by: SortKey = SortKey.SCORE
+    limit: Literal[10, 20] = 10
 
     @field_validator("areas")
     @classmethod

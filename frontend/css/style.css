@@ -149,7 +149,11 @@ body {
 
 .sort-row select {
   flex: 1;
-  padding: 8px;
+}
+
+.select-input {
+  width: 100%;
+  padding: 10px;
   border: 1px solid var(--color-border);
   border-radius: 6px;
   background: var(--color-card-bg);

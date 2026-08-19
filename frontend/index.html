@@ -44,6 +44,24 @@
         </div>
       </div>
 
+      <div class="field">
+        <label for="search-sort-select">並び順</label>
+        <select id="search-sort-select" class="select-input">
+          <option value="score">おすすめ順</option>
+          <option value="rating">評価が高い順</option>
+          <option value="reviews">口コミが多い順</option>
+          <option value="distance">駅から近い順</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="search-limit-select">件数</label>
+        <select id="search-limit-select" class="select-input">
+          <option value="10">10件</option>
+          <option value="20">20件</option>
+        </select>
+      </div>
+
       <button type="submit" class="primary-btn">カフェを探す</button>
     </form>
   </section>
@@ -56,7 +74,7 @@
 
     <div class="sort-row">
       <label for="sort-select">並び替え</label>
-      <select id="sort-select">
+      <select id="sort-select" class="select-input">
         <option value="score">おすすめ順</option>
         <option value="rating">評価が高い順</option>
         <option value="reviews">口コミが多い順</option>

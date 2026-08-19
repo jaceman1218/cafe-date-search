@@ -66,6 +66,12 @@ const BUDGET_LABELS = {
   under_5000: "〜5,000円",
   over_5000: "5,000円〜",
 };
+const SORT_LABELS = {
+  score: "おすすめ順",
+  rating: "評価が高い順",
+  reviews: "口コミが多い順",
+  distance: "駅から近い順",
+};
 
 document.getElementById("search-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -80,6 +86,8 @@ document.getElementById("search-form").addEventListener("submit", async (event) 
   }
 
   const budget = document.querySelector('input[name="budget"]:checked').value;
+  const sortBy = document.getElementById("search-sort-select").value;
+  const limit = Number(document.getElementById("search-limit-select").value);
   const submitBtn = event.target.querySelector(".primary-btn");
   submitBtn.disabled = true;
   submitBtn.textContent = "検索中...";
@@ -88,7 +96,7 @@ document.getElementById("search-form").addEventListener("submit", async (event) 
     const response = await fetch(`${API_BASE}/api/places/search`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ areas, time_slot: selectedTimeSlot, budget }),
+      body: JSON.stringify({ areas, time_slot: selectedTimeSlot, budget, sort_by: sortBy, limit }),
     });
 
     if (!response.ok) {
@@ -99,9 +107,11 @@ document.getElementById("search-form").addEventListener("submit", async (event) 
     const data = await response.json();
     lastResults = data.results;
     document.getElementById("results-condition").textContent =
-      `${data.searched_areas.join("・")} / ${TIME_SLOT_LABELS[selectedTimeSlot]} / ${BUDGET_LABELS[budget]}`;
-    document.getElementById("sort-select").value = "score";
-    renderList(sortResults(lastResults, "score"));
+      `${data.searched_areas.join("・")} / ${TIME_SLOT_LABELS[selectedTimeSlot]} / ${BUDGET_LABELS[budget]} / ${SORT_LABELS[sortBy]} / ${limit}件`;
+    // バックエンドが既に指定の並び順で返しているので、結果画面のプルダウンも合わせておく
+    // （そこからさらに別の並び順に切り替えることも引き続き可能）
+    document.getElementById("sort-select").value = sortBy;
+    renderList(lastResults);
     showScreen("results");
   } catch (error) {
     alert(error.message);
